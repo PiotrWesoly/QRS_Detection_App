@@ -16,12 +16,19 @@ QRS is the main spike seen on an ECG line.  Q wave is any downward deflection af
 
 <p align="center">
   <b> 
-      Screenshoot of application
+      QRS signal
   </b>
 </p>
   Below you can see the screenshot of an application, it was made in Matlab, the applicaiton itself uses wavelet transforms. The top graph shows ECG signal, while the bottom graph shows found R peaks. In the top right corner we can see the heart rate calculated using that ECG recording.
 <br /> 
 <br /> 
 
-![133630512_690533741527045_1388973012896699326_n](https://user-images.githubusercontent.com/55448589/134396050-b5e2fe37-eb54-49eb-af9e-f411c72da88f.png)
+<p align="center">
+    <img src="https://user-images.githubusercontent.com/55448589/134396050-b5e2fe37-eb54-49eb-af9e-f411c72da88f.png" width="720" height="480">
+</p>
 
+<p align="center">
+  <b> 
+      Screenshot of an application
+  </b>
+</p>
