@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:pPr><w:pStyle w:val="code"/></w:pPr><w:r><w:t><![CDATA[classdef tutorialApp < matlab.apps.AppBase
+
+    % Properties that correspond to app components
+    properties (Access = public)
+        QRSDetectorUIFigure             matlab.ui.Figure
+        Button                          matlab.ui.control.Button
+        SamplingFrequencyDropDownLabel  matlab.ui.control.Label
+        SamplingFrequencyDropDown       matlab.ui.control.DropDown
+        Image                           matlab.ui.control.Image
+        Label                           matlab.ui.control.Label
+        UIAxes                          matlab.ui.control.UIAxes
+        UIAxes2                         matlab.ui.control.UIAxes
+    end
+
+   
+ 
+
+    % Callbacks that handle component events
+    methods (Access = private)
+
+        % Button pushed function: Button
+        function callbackStart(app, event)
+        
+         
+            
+            if (app.SamplingFrequencyDropDown.Value=='500 Hz')
+               Freq = 500;
+           else 
+               Freq = 360;
+           end
+      %     Fs=app.SamplingFrequencyDropDown.Value; 
+            Fs=Freq;
+            [filename, pathname] = uigetfile('*.*');
+            filewithpath=strcat(pathname, filename);
+            ecg=load(filename);
+            ecgsig=(ecg.val)./200; %Normalize gain
+            t=1:length(ecgsig);
+            tx=t./Fs; %time vector
+            
+            wt = modwt(ecgsig, 4, 'sym4');
+            wtrec = zeros(size(wt));
+            wtrec(3:4,:) = wt(3:4,:);
+            
+            y = imodwt(wtrec,'sym4');
+            y = abs(y).^2; 
+            
+            avg=mean(y);
+            [Rpeak, locs] = findpeaks(y, t, 'MinPeakHeight', 8*avg, 'MinPeakDistance', 50);
+            
+            nohb = length(locs);
+            timelimit=length(ecgsig)/Fs;
+            hbpermin=(nohb*60)/timelimit;
+  %          disp(strcat('Heart Rate= ', num2str(hbpermin)))
+            
+            %subplot(211)
+        plot(app.UIAxes, ecgsig, 'cyan');
+       % xlim(app.UIAxes,[0, timelimit]);
+  %      grid on;
+        xlabel(app.UIAxes, 'Seconds')
+        title(app.UIAxes, 'ECG Signal', "Color",'cyan')
+
+       % subplot(212)
+       
+        plot(app.UIAxes2, y, 'green')
+    %    grid on;
+    %    xlim([app.UIAxes2, 0, length(ecgsig)]);
+        hold(app.UIAxes2)
+        plot(app.UIAxes2, locs, Rpeak, 'rO', "MarkerSize",10 )
+        xlabel(app.UIAxes2, 'Samples')
+        title(app.UIAxes2, strcat('R Peaks found'), "Color" ,'green')
+     
+       
+textLabel = sprintf('%s', num2str(hbpermin));
+app.Label.Text = textLabel;
+     
+            
+             
+        end
+    end
+
+    % Component initialization
+    methods (Access = private)
+
+        % Create UIFigure and components
+        function createComponents(app)
+
+            % Create QRSDetectorUIFigure and hide until all components are created
+            app.QRSDetectorUIFigure = uifigure('Visible', 'off');
+            app.QRSDetectorUIFigure.Color = [0.149 0.149 0.149];
+            app.QRSDetectorUIFigure.Position = [100 100 1153 705];
+            app.QRSDetectorUIFigure.Name = 'QRS Detector';
+
+            % Create Button
+            app.Button = uibutton(app.QRSDetectorUIFigure, 'push');
+            app.Button.ButtonPushedFcn = createCallbackFcn(app, @callbackStart, true);
+            app.Button.Icon = '25706.png';
+            app.Button.BackgroundColor = [0.502 0.502 0.502];
+            app.Button.Position = [719 42 161 62];
+            app.Button.Text = '';
+
+            % Create SamplingFrequencyDropDownLabel
+            app.SamplingFrequencyDropDownLabel = uilabel(app.QRSDetectorUIFigure);
+            app.SamplingFrequencyDropDownLabel.BackgroundColor = [0.502 0.502 0.502];
+            app.SamplingFrequencyDropDownLabel.HorizontalAlignment = 'center';
+            app.SamplingFrequencyDropDownLabel.FontName = 'Arial';
+            app.SamplingFrequencyDropDownLabel.FontSize = 30;
+            app.SamplingFrequencyDropDownLabel.FontWeight = 'bold';
+            app.SamplingFrequencyDropDownLabel.Position = [58 55 317 50];
+            app.SamplingFrequencyDropDownLabel.Text = 'Sampling Frequency';
+
+            % Create SamplingFrequencyDropDown
+            app.SamplingFrequencyDropDown = uidropdown(app.QRSDetectorUIFigure);
+            app.SamplingFrequencyDropDown.Items = {'360 Hz', '500 Hz'};
+            app.SamplingFrequencyDropDown.FontName = 'Arial';
+            app.SamplingFrequencyDropDown.FontSize = 40;
+            app.SamplingFrequencyDropDown.FontWeight = 'bold';
+            app.SamplingFrequencyDropDown.BackgroundColor = [0.502 0.502 0.502];
+            app.SamplingFrequencyDropDown.Position = [378 55 181 50];
+            app.SamplingFrequencyDropDown.Value = '360 Hz';
+
+            % Create Image
+            app.Image = uiimage(app.QRSDetectorUIFigure);
+            app.Image.HandleVisibility = 'off';
+            app.Image.Enable = 'off';
+            app.Image.Position = [1 100 1150 649];
+            app.Image.ImageSource = 'asdadsda22.png';
+
+            % Create Label
+            app.Label = uilabel(app.QRSDetectorUIFigure);
+            app.Label.HorizontalAlignment = 'center';
+            app.Label.FontSize = 80;
+            app.Label.FontWeight = 'bold';
+            app.Label.FontColor = [0.0588 1 1];
+            app.Label.Position = [866 532 227 150];
+            app.Label.Text = '';
+
+            % Create UIAxes
+            app.UIAxes = uiaxes(app.QRSDetectorUIFigure);
+            xlabel(app.UIAxes, 'Seconds')
+            app.UIAxes.XColor = 'none';
+            app.UIAxes.YColor = [0 1 1];
+            app.UIAxes.ZColor = [0.0588 1 1];
+            app.UIAxes.Color = 'none';
+            app.UIAxes.XGrid = 'on';
+            app.UIAxes.YGrid = 'on';
+            app.UIAxes.Box = 'on';
+            app.UIAxes.Position = [35 434 801 204];
+
+            % Create UIAxes2
+            app.UIAxes2 = uiaxes(app.QRSDetectorUIFigure);
+            xlabel(app.UIAxes2, 'Samples')
+            app.UIAxes2.XColor = 'none';
+            app.UIAxes2.YColor = [0 1 0];
+            app.UIAxes2.YTickLabel = {'0'; '0.5'; '1'};
+            app.UIAxes2.Color = 'none';
+            app.UIAxes2.XGrid = 'on';
+            app.UIAxes2.YGrid = 'on';
+            app.UIAxes2.Box = 'on';
+            app.UIAxes2.Position = [34 223 801 204];
+
+            % Show the figure after all components are created
+            app.QRSDetectorUIFigure.Visible = 'on';
+        end
+    end
+
+    % App creation and deletion
+    methods (Access = public)
+
+        % Construct app
+        function app = tutorialApp
+
+            % Create UIFigure and components
+            createComponents(app)
+
+            % Register the app with App Designer
+            registerApp(app, app.QRSDetectorUIFigure)
+
+            if nargout == 0
+                clear app
+            end
+        end
+
+        % Code that executes before app deletion
+        function delete(app)
+
+            % Delete UIFigure when app is deleted
+            delete(app.QRSDetectorUIFigure)
+        end
+    end
+end]]></w:t></w:r></w:p></w:body></w:document>
